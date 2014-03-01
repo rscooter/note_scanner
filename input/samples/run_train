@@ -1,0 +1,29 @@
+#!/bin/bash
+HEIGHT=35
+WIDTH=15
+POSITIVE=positive
+NEGATIVE=negative
+
+# Generate negative text file
+find $NEGATIVE -iname "*.jpg" > $NEGATIVE.dat
+
+# Generate positive text file
+>$POSITIVE.dat
+for file in `find $POSITIVE | grep jpg`
+    do
+        widthHeight=`sips -g pixelHeight -g pixelWidth $file | awk '{print $2}' | tr '\n' ' '`
+        echo "$file 1 0 0$widthHeight" >> $POSITIVE.dat
+    done
+
+# Calc positive and negative nums
+NUM_NEGATIVE=`ls $NEGATIVE| wc -l`
+NUM_POSITIVE=`ls $POSITIVE | wc -l`
+
+# Cleanup previous training run
+rm -f haarcascade/*
+
+# Generate samples
+#opencv_createsamples -info $POSITIVE.dat -vec samples.vec -w $WIDTH -h $HEIGHT -show
+
+# Run cascade trainer
+#opencv_traincascade -data haarcascade-vec samples.vec -bg $NEGATIVE.dat -numStages 16 -minhitrate 0.999 -maxFalseAlarmRate 0.4 -numPos $NUM_POSITIVE -numNeg $NUM_NEGATIVE -w $WIDTH -h $HEIGHT -mode ALL -precalcValBufSize 2048 -precalcIdxBufSize 2048
